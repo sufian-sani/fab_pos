@@ -1,0 +1,86 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+*.manifest
+*.spec
+
+# Virtual environment
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django / SQLite
+*.log
+*.pot
+*.pyc
+# db.sqlite3
+# db.sqlite3-journal
+
+# Media & static files (optional, if generated)
+media/
+staticfiles/
+static/
+
+# Migrations (optional, keep if you want versioned migrations)
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+
+# IDE / Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage / testing
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.cache
+.pytest_cache/
+test-results/
+
+# Build / packaging
+build/
+dist/
+*.bak
+*.swp
+*.tmp
+*.log
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# Node (if using frontend in same repo)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Gunicorn / uWSGI
+*.sock
+*.pid
+
+# Security
+*.pem
+*.key
+*.crt
