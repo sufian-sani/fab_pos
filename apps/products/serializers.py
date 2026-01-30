@@ -9,6 +9,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """Serializer for Category"""
     
     tenant_name = serializers.CharField(source='tenant.name', read_only=True)
+    branch_name = serializers.CharField(source='branch.name', read_only=True)
     product_count = serializers.SerializerMethodField()
     
     class Meta:
@@ -17,10 +18,13 @@ class CategorySerializer(serializers.ModelSerializer):
             'id',
             'tenant',
             'tenant_name',
+            'branch',
+            'branch_name',
             'name',
             'description',
             'display_order',
             'icon',
+            'pos_devices',
             'is_active',
             'product_count',
             'created_at',
@@ -91,6 +95,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'cost_price',
             'profit_margin',
             'image',
+            'pos_devices',
             'is_available',
             'is_active',
             'track_inventory',

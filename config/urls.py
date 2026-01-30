@@ -25,8 +25,6 @@ from apps.users.views import UserViewSet
 
 from apps.products.views import CategoryViewSet, ProductViewSet
 
-from apps.devices.views import DeviceViewSet
-
 
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -38,7 +36,6 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'products', ProductViewSet, basename='product')
-router.register(r'devices', DeviceViewSet, basename='device')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -52,4 +49,8 @@ urlpatterns = [
     #api documentation
     path('api/schema/', SpectacularAPIView.as_view(permission_classes=[AllowAny]), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema', permission_classes=[AllowAny]), name='swagger-ui'),
+    
+    # App URLs
+    path('api/pos/', include('apps.pos.urls')),
+    path('api/', include('apps.orders.urls'))
 ]

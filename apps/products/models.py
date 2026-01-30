@@ -13,10 +13,27 @@ class Category(models.Model):
         db_index=True
     )
 
+    branch = models.ForeignKey(
+        'branches.Branch',
+        on_delete=models.CASCADE,
+        related_name='categories',
+        db_index=True,
+        null=True,
+        blank=True
+    )
+
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     display_order = models.IntegerField(default=0, db_index=True)
     icon = models.CharField(max_length=50, blank=True)
+
+    # POS devices this category is available on
+    pos_devices = models.ManyToManyField(
+        'pos.POSDevice',
+        related_name='categories',
+        blank=True,
+        help_text="POS devices where this category is available. Leave blank to make available on all devices in the branch."
+    )
 
     is_active = models.BooleanField(default=True, db_index=True)
 
@@ -28,8 +45,9 @@ class Category(models.Model):
         ordering = ['display_order', 'name']
         verbose_name = 'Category'
         verbose_name_plural = 'Categories'
+        unique_together = [['tenant', 'branch', 'name']]
         indexes = [
-            models.Index(fields=['tenant', 'is_active', 'display_order']),
+            models.Index(fields=['tenant', 'branch', 'is_active', 'display_order']),
         ]
 
     def __str__(self):
@@ -58,6 +76,14 @@ class Product(models.Model):
     name = models.CharField(max_length=255, db_index=True)
     sku = models.CharField(max_length=100, unique=True, db_index=True)
     description = models.TextField(blank=True)
+
+    # POS devices this product is available on
+    pos_devices = models.ManyToManyField(
+        'pos.POSDevice',
+        related_name='products',
+        blank=True,
+        help_text="POS devices where this product is available. Leave blank to make available on all devices in the branch."
+    )
 
     # Pricing with Django 5.2 validators
     price = models.DecimalField(
@@ -100,6 +126,9 @@ class Product(models.Model):
         indexes = [
             models.Index(fields=['tenant', 'is_active', 'is_available']),
             models.Index(fields=['category', 'is_available']),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['sku'], name='unique_sku')
         ]
 
     def __str__(self):
