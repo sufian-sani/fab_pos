@@ -26,3 +26,15 @@ class POSDeviceSerializer(serializers.ModelSerializer):
             'updated_at'
         ]
         read_only_fields = ['id', 'auth_token', 'last_seen', 'created_at', 'updated_at']
+
+
+class POSPortalDeviceSerializer(serializers.ModelSerializer):
+    """Minimal serializer for POS Portal display"""
+    
+    branch_name = serializers.CharField(source='branch.name', read_only=True)
+    is_online = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = POSDevice
+        fields = ['id', 'name', 'device_id', 'device_type', 'branch_name', 'status', 'is_online']
+

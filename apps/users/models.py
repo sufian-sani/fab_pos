@@ -49,7 +49,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=True,
         help_text="Which branch this user manages/works at"
     )
-    
+
+    # POS Devices (specific devices this user can access)
+    pos_devices = models.ManyToManyField(
+        'pos.POSDevice',
+        related_name='operators',
+        blank=True,
+        help_text="POS devices this user has access to (for cashiers/branch managers)"
+    )
+
     # Status
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

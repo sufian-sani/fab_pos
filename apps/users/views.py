@@ -262,3 +262,96 @@ class UserViewSet(viewsets.ModelViewSet):
             }
         
         return Response(stats)
+    
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def pos_login(self, request):
+        """
+        POS Portal Login - Special endpoint for POS terminals
+        
+        This endpoint is used by POS terminals (cashiers/branch managers)
+        to authenticate and get their accessible menu.
+        
+        POST /api/users/pos_login/
+        Body: {"email": "cashier@example.com", "password": "password", "device_id": "POS-001"}
+        
+        Returns:
+        - JWT tokens
+        - User info
+        - List of accessible POS devices
+        - Menu preview (categories + products available for this user)
+        """
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+        
+        user = authenticate(email=email, password=password)
+        
+        if not user:
+            return Response(
+                {'error': 'Invalid credentials'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        if not user.is_active:
+            return Response(
+                {'error': 'Account is disabled'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Check if user has POS access
+        if user.is_platform_owner or user.is_tenant_admin:
+            return Response(
+                {'error': 'This user cannot access POS portal. Use admin interface instead.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Check if user has assigned POS devices
+        if user.is_cashier and not user.pos_devices.exists():
+            return Response(
+                {'error': 'No POS devices assigned to this user'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        if user.is_branch_manager and not user.branch:
+            return Response(
+                {'error': 'Branch not assigned to this user'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        
+        # Get accessible POS devices
+        if user.is_cashier:
+            accessible_devices = user.pos_devices.filter(is_active=True)
+        else:  # branch_manager
+            if user.pos_devices.exists():
+                accessible_devices = user.pos_devices.filter(is_active=True)
+            else:
+                from apps.pos.models import POSDevice
+                accessible_devices = POSDevice.objects.filter(
+                    branch=user.branch,
+                    is_active=True
+                )
+        
+        if not accessible_devices.exists():
+            return Response(
+                {'error': 'No active POS devices available for this user'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        from apps.pos.serializers import POSPortalDeviceSerializer
+        
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': UserProfileSerializer(user).data,
+            'pos_devices': POSPortalDeviceSerializer(
+                accessible_devices,
+                many=True
+            ).data,
+            'device_count': accessible_devices.count(),
+            'message': f'Successfully authenticated. {accessible_devices.count()} POS device(s) available.'
+        })
