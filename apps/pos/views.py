@@ -126,3 +126,28 @@ class POSDeviceViewSet(viewsets.ModelViewSet):
         devices = self.get_queryset().filter(status='online')
         serializer = self.get_serializer(devices, many=True)
         return Response(serializer.data)
+
+
+# ---------------------------------------------------------------------------
+# Read-only DeviceViewSet (public-facing) - exposes `list` and `retrieve`
+# ---------------------------------------------------------------------------
+class DeviceViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only endpoints for devices (list, retrieve).
+
+    Registered under `devices` namespace.
+    """
+    serializer_class = POSDeviceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_platform_owner:
+            return POSDevice.objects.select_related('branch', 'branch__tenant')
+
+        if user.is_tenant_admin:
+            return POSDevice.objects.filter(branch__tenant_id=user.tenant_id).select_related('branch')
+
+        if user.is_branch_manager:
+            return POSDevice.objects.filter(branch_id=user.branch_id).select_related('branch')
+
+        return POSDevice.objects.none()
