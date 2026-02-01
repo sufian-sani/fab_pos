@@ -14,7 +14,7 @@ class Command(BaseCommand):
                 self.stdout.write(d.public_url)
                 continue
 
-            tenant = getattr(d.branch, 'tenant', None)
+            tenant = getattr(d, 'tenant', None) or (getattr(d.branch, 'tenant', None) if d.branch else None)
             tenant_domain = getattr(tenant, 'domain', None) if tenant else None
             path = d.get_absolute_url() or ''
 

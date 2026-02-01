@@ -18,10 +18,22 @@ class POSDevice(models.Model):
         ('suspended', 'Suspended'),
     ]
     
+    # Branch is optional; a device may be linked directly to a tenant
     branch = models.ForeignKey(
         'branches.Branch',
+        on_delete=models.SET_NULL,
+        related_name='devices',
+        null=True,
+        blank=True,
+    )
+    # Tenant FK for multi-tenant awareness (preferred source for building URLs)
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
         on_delete=models.CASCADE,
-        related_name='devices'
+        related_name='devices',
+        null=True,
+        blank=True,
+        db_index=True,
     )
     
     # Device Info
@@ -41,6 +53,15 @@ class POSDevice(models.Model):
     
     # Authentication
     auth_token = models.CharField(max_length=255, unique=True, blank=True)
+
+    # Device-level assignment (optional): specific user assigned to this device
+    assigned_to = models.ForeignKey(
+        'users.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_devices'
+    )
     
     # Status
     status = models.CharField(
@@ -71,7 +92,10 @@ class POSDevice(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.branch.name} - {self.name}"
+        branch_name = self.branch.name if self.branch else 'NoBranch'
+        tenant_name = getattr(self.tenant, 'name', None) or (getattr(self.branch, 'tenant', None) and getattr(self.branch.tenant, 'name', None))
+        prefix = tenant_name or branch_name
+        return f"{prefix} - {self.name}"
     
     @property
     def is_online(self):
@@ -96,6 +120,13 @@ class POSDevice(models.Model):
     def save(self, *args, **kwargs):
         if not self.auth_token:
             self.generate_token()
+        # Ensure tenant is set from branch if not explicitly provided
+        if not self.tenant and self.branch is not None:
+            try:
+                self.tenant = self.branch.tenant
+            except Exception:
+                pass
+
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -106,7 +137,9 @@ class POSDevice(models.Model):
           as the host when building absolute URLs).
         - Otherwise use `/tenants/<tenant.slug or tenant.id>/devices/<device_id>/`.
         """
-        tenant = getattr(self.branch, 'tenant', None)
+        # Return canonical path for this device within the POS area.
+        # If tenant has a domain, the host will be that domain and path can be short.
+        tenant = self.tenant or (self.branch.tenant if self.branch and getattr(self.branch, 'tenant', None) else None)
         tenant_domain = getattr(tenant, 'domain', None) if tenant else None
         slug = getattr(tenant, 'slug', None) or (getattr(tenant, 'id', None) if tenant else None)
 
@@ -114,10 +147,24 @@ class POSDevice(models.Model):
             return f"/devices/{self.device_id}/"
 
         if slug:
-            return f"/tenants/{slug}/devices/{self.device_id}/"
+            return f"/pos/tenants/{slug}/devices/{self.device_id}/"
 
         # Fallback to a path-only URL using device id
-        return f"/devices/{self.device_id}/"
+        return f"/pos/devices/{self.device_id}/"
+
+    def get_login_path(self):
+        """Return the login path for this device (path-only)."""
+        tenant = self.tenant or (self.branch.tenant if self.branch and getattr(self.branch, 'tenant', None) else None)
+        tenant_domain = getattr(tenant, 'domain', None) if tenant else None
+        slug = getattr(tenant, 'slug', None) or (getattr(tenant, 'id', None) if tenant else None)
+
+        if tenant and tenant_domain:
+            return f"/devices/{self.device_id}/login/"
+
+        if slug:
+            return f"/pos/tenants/{slug}/devices/{self.device_id}/login/"
+
+        return f"/pos/devices/{self.device_id}/login/"
 
 
 # Signal: ensure `public_url` is populated after save (post_save so PK exists)
