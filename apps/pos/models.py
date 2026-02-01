@@ -87,3 +87,8 @@ class POSDevice(models.Model):
         import uuid
         self.auth_token = f"POS-{uuid.uuid4().hex}"
         return self.auth_token
+
+    def save(self, *args, **kwargs):
+        if not self.auth_token:
+            self.generate_token()
+        super().save(*args, **kwargs)
