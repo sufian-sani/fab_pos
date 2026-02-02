@@ -3,8 +3,24 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import get_user_model
 from apps.tenants.models import Tenant
 from apps.branches.models import Branch
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # ✅ Add custom data into JWT
+        token['id'] = user.id
+        token['email'] = user.email
+        token['username'] = user.username
+        token['role'] = user.role   # if you have role field
+        token['tenant'] = user.tenant.code if hasattr(user, 'tenant') else None
+
+        return token
 
 
 class UserSerializer(serializers.ModelSerializer):

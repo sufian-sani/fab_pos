@@ -12,7 +12,8 @@ from .serializers import (
     UserUpdateSerializer,
     ChangePasswordSerializer,
     UserProfileSerializer,
-    LoginSerializer
+    LoginSerializer,
+    MyTokenObtainPairSerializer
 )
 from .permissions import (
     IsPlatformOwner,
@@ -22,7 +23,7 @@ from .permissions import (
 )
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet, MyTokenObtainPairSerializer):
     """
     ViewSet for User management
     
@@ -120,7 +121,22 @@ class UserViewSet(viewsets.ModelViewSet):
         
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
-        
+
+         # ✅ Add custom claims (user info inside JWT)
+        refresh['id'] = user.id
+        refresh['email'] = user.email
+        refresh['username'] = user.username
+
+        # breakpoint()
+
+        # # if you have role field
+        if hasattr(user, 'role'):
+            refresh['role'] = user.role
+
+        # # if you have tenant
+        if hasattr(user, 'tenant') and user.tenant:
+            refresh['tenant'] = user.tenant.id
+
         return Response({
             'access': str(refresh.access_token),
             'refresh': str(refresh),
