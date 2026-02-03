@@ -7,16 +7,19 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     POSDeviceViewSet,
     DeviceViewSet,
-    DeviceLoginAPIView,
     DeviceLogoutAPIView,
     DeviceHeartbeatAPIView,
     DeviceStatusAPIView,
-    MyDevicesAPIView
+    MyDevicesAPIView,
+    PosDeviceAPIView,
 )
 from .portal_status_views import POSPortalMenuViewSet
 
-#pos portal view
-from .portal_views import PosDeviceAPIView
+#main view
+# from .views import (
+#     POSDeviceViewSet,
+#     PosDeviceAPIView
+#     )
 
 router = DefaultRouter()
 
@@ -31,7 +34,8 @@ router.register(r'portal', POSPortalMenuViewSet, basename='pos-portal')
 
 
 # router.register(r'tenants/(?P<tenant_id>\d+)/devices', DeviceLoginAPIView, basename='tenant-devices')
-router.register(r'tenants/(?P<tenant_id>\d+)/devices', PosDeviceAPIView, basename='tenant-devices')
+# router.register(r'tenants/(?P<tenant_id>\d+)/devices', PosDeviceAPIView, basename='tenant-devices')
+router.register(r'tenants/(?P<tenant_id>\d+)/device', PosDeviceAPIView, basename='tenant-device')
 
 # path(
 #         'tenants/<int:tenant_id>/devices/<str:device_id>/login/',

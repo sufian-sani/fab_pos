@@ -16,8 +16,7 @@ from apps.pos.permissions import IsTenantOwnerOrBranchStaffOrAssigned, POSPortal
 from apps.tenants.models import Tenant
 
 
-
-class PosDeviceAPIView(viewsets.ViewSet):
+class BasePosDeviceAPIView(viewsets.ViewSet):
 
     permission_classes = [POSPortalPermission]
 
