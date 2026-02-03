@@ -1,5 +1,4 @@
-from rest_framework.permissions import BasePermission
-
+from rest_framework.permissions import BasePermission, IsAuthenticated
 
 class IsTenantOwnerOrBranchStaffOrAssigned(BasePermission):
     """Allow access only to tenant owners, branch staff for the branch, or the assigned user."""
@@ -33,3 +32,20 @@ class IsTenantOwnerOrBranchStaffOrAssigned(BasePermission):
     # For list-level filtering, allow access if authenticated; view should further filter queryset
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated)
+
+class POSPortalPermission(IsAuthenticated):
+    """
+    Permission check for POS Portal access.
+    Only users with cashier, branch_manager roles and assigned POS devices can access.
+    """
+    def has_permission(self, request, view):
+        if not super().has_permission(request, view):
+            return False
+        
+        # breakpoint()
+        # Platform owner and tenant admin access through regular admin views
+        if request.user.is_platform_owner or request.user.is_tenant_admin:
+            return True  # Use admin endpoints instead
+        
+        # Only cashier and branch manager roles can access POS portal
+        return request.user.is_cashier or request.user.is_branch_manager

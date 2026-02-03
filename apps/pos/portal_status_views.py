@@ -25,24 +25,7 @@ from apps.products.serializers import (
 )
 from apps.pos.models import POSDevice
 from apps.pos.serializers import POSPortalDeviceSerializer
-
-
-class POSPortalPermission(IsAuthenticated):
-    """
-    Permission check for POS Portal access.
-    Only users with cashier, branch_manager roles and assigned POS devices can access.
-    """
-    
-    def has_permission(self, request, view):
-        if not super().has_permission(request, view):
-            return False
-        
-        # Platform owner and tenant admin access through regular admin views
-        if request.user.is_platform_owner or request.user.is_tenant_admin:
-            return False  # Use admin endpoints instead
-        
-        # Only cashier and branch manager roles can access POS portal
-        return request.user.is_cashier or request.user.is_branch_manager
+from apps.pos.permissions import POSPortalPermission
 
 
 class POSPortalMenuViewSet(viewsets.ReadOnlyModelViewSet):
@@ -62,7 +45,6 @@ class POSPortalMenuViewSet(viewsets.ReadOnlyModelViewSet):
     - GET /api/pos/portal/devices/ - Get user's accessible devices
     - GET /api/pos/portal/search/ - Search products
     """
-    
     permission_classes = [POSPortalPermission]
     
     def get_user_pos_devices(self):
@@ -75,6 +57,13 @@ class POSPortalMenuViewSet(viewsets.ReadOnlyModelViewSet):
         - For branch staff: devices assigned to them
         """
         user = self.request.user
+
+        # ✅ Tenant admin: all POS under tenant
+        if user.is_tenant_admin:
+            return POSDevice.objects.filter(
+                tenant=user.tenant,
+                is_active=True
+            )
         
         if user.is_cashier:
             # Cashier sees only their assigned devices

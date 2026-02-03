@@ -13,7 +13,10 @@ from .views import (
     DeviceStatusAPIView,
     MyDevicesAPIView
 )
-from .portal_views import POSPortalMenuViewSet
+from .portal_status_views import POSPortalMenuViewSet
+
+#pos portal view
+from .portal_views import PosDeviceAPIView
 
 router = DefaultRouter()
 
@@ -26,16 +29,36 @@ router.register(r'devices/manage', POSDeviceViewSet, basename='pos-device')
 # Portal endpoints (for POS interface)
 router.register(r'portal', POSPortalMenuViewSet, basename='pos-portal')
 
+
+# router.register(r'tenants/(?P<tenant_id>\d+)/devices', DeviceLoginAPIView, basename='tenant-devices')
+router.register(r'tenants/(?P<tenant_id>\d+)/devices', PosDeviceAPIView, basename='tenant-devices')
+
+# path(
+#         'tenants/<int:tenant_id>/devices/<str:device_id>/login/',
+#         DeviceLoginAPIView.as_view(),
+#         name='device-login'
+#     ),
+    # path(
+    #     'tenants/<int:tenant_id>/devices/<str:device_id>/check_status/',
+    #     DeviceLoginAPIView.as_view(),
+    #     name='device-check-status'
+    # ),
+
 urlpatterns = [
     # Router URLs
     path('', include(router.urls)),
     
     # Device authentication endpoints
-    path(
-        'tenants/<int:tenant_id>/devices/<str:device_id>/login/',
-        DeviceLoginAPIView.as_view(),
-        name='device-login'
-    ),
+    # path(
+    #     'tenants/<int:tenant_id>/devices/<str:device_id>/login/',
+    #     DeviceLoginAPIView.as_view(),
+    #     name='device-login'
+    # ),
+    # path(
+    #     'tenants/<int:tenant_id>/devices/<str:device_id>/check_status/',
+    #     DeviceLoginAPIView.as_view(),
+    #     name='device-check-status'
+    # ),
     path(
         'tenants/<int:tenant_id>/devices/<str:device_id>/logout/',
         DeviceLogoutAPIView.as_view(),
