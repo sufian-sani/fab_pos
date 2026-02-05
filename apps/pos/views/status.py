@@ -15,3 +15,11 @@ class PosDeviceStatusMixin:
             "is_online": device.is_online,
             "last_seen": device.last_seen,
         })
+
+    @action(detail=True, methods=["get"], url_path="test")
+    def test(self, request, *args, **kwargs):
+        device = self.get_object()
+
+        return Response({
+            "test": "test response",
+        })
