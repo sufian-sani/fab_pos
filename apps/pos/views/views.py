@@ -20,6 +20,34 @@ from apps.pos.permissions import IsTenantOwnerOrBranchStaffOrAssigned, POSPortal
 from apps.tenants.models import Tenant
 
 
+
+
+# ============================================================================
+# READ-ONLY DEVICE VIEWSET (Your existing code - keeping it)
+# ============================================================================
+
+class DeviceViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only endpoints for devices (list, retrieve).
+
+    Registered under `devices` namespace.
+    """
+    serializer_class = POSDeviceSerializer
+    permission_classes = [POSPortalPermission]
+
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_platform_owner:
+            return POSDevice.objects.select_related('branch', 'branch__tenant', 'tenant')
+
+        if user.is_tenant_admin:
+            return POSDevice.objects.filter(tenant_id=user.tenant_id).select_related('branch', 'tenant')
+
+        if user.is_branch_manager:
+            return POSDevice.objects.filter(branch_id=user.branch_id).select_related('branch', 'tenant')
+        return POSDevice.objects.none()
+
+
 # ============================================================================
 # POS DEVICE VIEWSET (Your existing code - keeping it)
 # ============================================================================
@@ -139,32 +167,6 @@ class POSDeviceViewSet(viewsets.ModelViewSet):
         devices = self.get_queryset().filter(status='online')
         serializer = self.get_serializer(devices, many=True)
         return Response(serializer.data)
-
-
-# ============================================================================
-# READ-ONLY DEVICE VIEWSET (Your existing code - keeping it)
-# ============================================================================
-
-class DeviceViewSet(viewsets.ReadOnlyModelViewSet):
-    """Read-only endpoints for devices (list, retrieve).
-
-    Registered under `devices` namespace.
-    """
-    serializer_class = POSDeviceSerializer
-    permission_classes = [POSPortalPermission]
-
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_platform_owner:
-            return POSDevice.objects.select_related('branch', 'branch__tenant', 'tenant')
-
-        if user.is_tenant_admin:
-            return POSDevice.objects.filter(tenant_id=user.tenant_id).select_related('branch', 'tenant')
-
-        if user.is_branch_manager:
-            return POSDevice.objects.filter(branch_id=user.branch_id).select_related('branch', 'tenant')
-        return POSDevice.objects.none()
 
 # ============================================================================
 # MY DEVICES VIEW (Your existing code - keeping it)
