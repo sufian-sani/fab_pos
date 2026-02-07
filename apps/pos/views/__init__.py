@@ -1,9 +1,5 @@
 from .views import (
-    POSDeviceViewSet, 
-    DeviceViewSet, 
-    DeviceLogoutAPIView, 
-    MyDevicesAPIView, 
-    DeviceHeartbeatAPIView, 
+    DeviceViewSet,
     DeviceStatusAPIView,
 )
 
@@ -15,17 +11,12 @@ from .status import PosDeviceStatusMixin
 
 
 __all__ = [ 
-    "POSDeviceViewSet", 
-    "DeviceViewSet", 
-    "DeviceLogoutAPIView", 
-    "MyDevicesAPIView", 
-    "DeviceHeartbeatAPIView", 
+    "DeviceViewSet",
     "DeviceStatusAPIView", 
 ]
 
 class PosDeviceAPIView(
     PosDeviceStatusMixin,
     BasePosDeviceAPIView,
-    # PosDeviceStatusAPIView,
 ):
     pass
