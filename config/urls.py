@@ -33,9 +33,9 @@ from drf_spectacular.views import (
 
 # Create router
 router = DefaultRouter()
-router.register(r'users', UserViewSet, basename='user')
-router.register(r'categories', CategoryViewSet, basename='category')
-router.register(r'products', ProductViewSet, basename='product')
+# router.register(r'users', UserViewSet, basename='user')
+# router.register(r'categories', CategoryViewSet, basename='category')
+# router.register(r'products', ProductViewSet, basename='product')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -51,6 +51,7 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema', permission_classes=[AllowAny]), name='swagger-ui'),
     
     # App URLs
+    path('api/categories/', include('apps.products.urls')),
     path('api/pos/', include('apps.pos.urls')),
     path('api/', include('apps.orders.urls'))
 ]
