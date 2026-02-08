@@ -6,17 +6,19 @@ from .views import (
 
 from .base import BasePosDeviceAPIView
 from .status import PosDeviceStatusMixin
+from .products import PosDeviceProductsMixin
 # from .orders import PosDeviceOrderAPIView
 # from .auth import PosDeviceAuthAPIView
 
-
-__all__ = [ 
-    "DeviceViewSet",
-    "DeviceStatusAPIView", 
-]
-
 class PosDeviceAPIView(
     PosDeviceStatusMixin,
+    PosDeviceProductsMixin,
     BasePosDeviceAPIView,
 ):
     pass
+
+__all__ = [ 
+    "DeviceViewSet",
+    "DeviceStatusAPIView",
+    'PosDeviceAPIView',
+]

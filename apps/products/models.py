@@ -133,10 +133,3 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
-
-    @property
-    def profit_margin(self):
-        """Calculate profit margin percentage"""
-        if self.cost_price and self.cost_price > 0:
-            return round(((self.price - self.cost_price) / self.price) * 100, 2)
-        return None

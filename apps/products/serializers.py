@@ -78,7 +78,6 @@ class ProductSerializer(serializers.ModelSerializer):
     
     tenant_name = serializers.CharField(source='tenant.name', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
-    profit_margin = serializers.ReadOnlyField()
     
     class Meta:
         model = Product
@@ -93,7 +92,6 @@ class ProductSerializer(serializers.ModelSerializer):
             'description',
             'price',
             'cost_price',
-            'profit_margin',
             'image',
             'pos_devices',
             'is_available',
