@@ -53,5 +53,5 @@ urlpatterns = [
     # App URLs
     path('api/categories/', include('apps.products.urls')),
     path('api/pos/', include('apps.pos.urls')),
-    path('api/', include('apps.orders.urls'))
+    path('api/orders/', include('apps.orders.urls'))
 ]
